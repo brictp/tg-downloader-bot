@@ -1,0 +1,42 @@
+# Archivos y carpetas de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos virtuales
+venv/
+.venv/
+
+# Variables de entorno y configuración
+.env
+.env.local
+config.json
+settings.json
+
+# Archivos de logs
+logs/
+*.log
+
+# Dependencias generadas
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Caché y archivos temporales
+*.swp
+*.swo
+.cache/
+*.bak
+
+# Configuración de IDEs y editores
+.vscode/
+.idea/
+*.iml
+
+# Archivos de compilación
+dist/
+build/
+*.egg-info/
+
+media/
+videos/
