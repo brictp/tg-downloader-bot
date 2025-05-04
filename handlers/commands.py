@@ -1,7 +1,18 @@
 import re
+import os
 from aiogram.types import Message, FSInputFile
 
-from utils import download_video, register_error, delete_video, albion_request
+
+from utils import (
+    fetch_data,
+    build_response,
+    parse_item_info,
+    create_prices_file,
+    build_link_price,
+    download_video,
+    register_error,
+    delete_video,
+)
 
 
 class BotHandlers:
@@ -59,55 +70,40 @@ class BotHandlers:
 
     async def get_albion_price(self, message: Message):
         """Obtener el precio de un objeto en Albion Online"""
+
         # Extraer el comando y los argumentos del mensaje
-        try:
-            command, args = message.text.split(" ", 1)
-        except ValueError:
-            await message.reply(
-                "❌ Debes proporcionar el nombre del objeto y su nivel. Ejemplo: /price item 5.3"
-            )
-            return
+        item_data = await parse_item_info.parse_item_info(message)
 
-        status_message = await message.reply("🔄 Buscando el precio del objeto...")
+        status_message = await message.reply(
+            "🔄 Buscando el precio del objeto, esto puede tardar unos momentos..."
+        )
 
-        # Procesar los argumentos
-        try:
-            item_name, tier_enchantment = args.split(" ", 1)
-            tier, enchantment = tier_enchantment.split(".")
-        except ValueError:
-            await status_message.delete()
-            await message.reply("❌ Formato incorrecto. Ejemplo: /price item 5.3")
-            return
-
-        # Determinar si el objeto es de refinar o refinado
-        refining_items = [
-            "hide",
-            "ore",
-            "metalbar",
-            "leather",
-            "wood",
-            "rock",
-            "planks",
-            "cloth",
-            "fiber",
-            "stone",
-        ]
-
-        if any(refining_item in item_name for refining_item in refining_items):
-            item = f"T{tier}_{item_name.upper()}_LEVEL{enchantment}@{enchantment}"
-        else:
-            item = f"T{tier}_{item_name}@{enchantment}"
-
-        # Construir el enlace
-        host = "https://west.albion-online-data.com"
-        next = f"/api/v2/stats/charts/{item}.json?time-scale=1"
-        LINK = f"{host}{next}"
+        LINK = await build_link_price.build_link_price(item_data)
 
         # Obtener los datos y organizar por ciudad y calidad
-        data = albion_request.fetch_data(LINK)
+        data = fetch_data.fetch_data(LINK)
         await status_message.delete()
+
+        # Verificar si se obtuvo información
         if data:
-            response = albion_request.build_response(data)
-            await message.reply(response)
+            response = build_response.build_response(data)
+
+            try:
+                if len(response) > 1500:
+                    new_prices_file = create_prices_file.save_prices_file(
+                        response, item_data
+                    )
+
+                    document = FSInputFile(new_prices_file)
+                    await message.reply_document(document)
+
+                    os.remove(new_prices_file)
+                else:
+                    await message.reply(response)
+
+            except Exception as e:
+                await message.reply("❌ Error al enviar la respuesta.")
+                print(f"Error al enviar la respuesta: {e}")
+                register_error(f"Error al enviar la respuesta: {e}")
         else:
             await message.reply("❌ No se pudo obtener la información del objeto.")
