@@ -1,5 +1,4 @@
 import re
-import os
 from aiogram.types import Message, FSInputFile
 
 
@@ -11,7 +10,7 @@ from utils import (
     build_link_price,
     download_video,
     register_error,
-    delete_video,
+    delete_file,
 )
 
 
@@ -59,7 +58,7 @@ class BotHandlers:
                     caption="🎥 Aquí está tu video.",
                 )
 
-                delete_video(path_to_video)
+                delete_file(path_to_video)
 
             except Exception as e:
                 await message.reply("Error descargando video")
@@ -97,7 +96,7 @@ class BotHandlers:
                     document = FSInputFile(new_prices_file)
                     await message.reply_document(document)
 
-                    os.remove(new_prices_file)
+                    delete_file(new_prices_file)
                 else:
                     await message.reply(response)
 
