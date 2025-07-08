@@ -4,7 +4,7 @@ import asyncio
 
 async def delete_file(path):
     """Delete video after 3 minutes"""
-    await asyncio.sleep(180)  # Esperar 3 minutos
+    await asyncio.sleep(20)  # Esperar 20 segundos
 
     if os.path.exists(path):
         os.remove(path)

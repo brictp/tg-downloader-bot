@@ -19,9 +19,9 @@ async def group_id(message: Message):
     await bot_handler.get_group_id(message)
 
 
-@router.message(Command(commands=["price"]))
-async def albion_price(message: Message):
-    await bot_handler.get_albion_price(message)
+@router.message(Command(commands=["getsong"]))
+async def get_song(message: Message):
+    await bot_handler.get_song_name(message)
 
 
 @router.message()

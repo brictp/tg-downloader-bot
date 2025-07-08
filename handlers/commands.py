@@ -3,15 +3,13 @@ from aiogram.types import Message, FSInputFile
 
 
 from utils import (
-    fetch_data,
-    build_response,
-    parse_item_info,
-    create_prices_file,
-    build_link_price,
-    download_video,
+    download_media,
     register_error,
     delete_file,
+    identify_song_from_file,
 )
+
+from utils.enums import MediaFormat
 
 
 class BotHandlers:
@@ -43,66 +41,61 @@ class BotHandlers:
         if urls:
             url = urls[0]
             status_message = await message.reply(
-                "🔄 Descargando el video, esto puede tardar unos momentos..."
+                "🔄 Downloading, this may take a few moments..."
             )
 
             try:
                 # Descargar el video
-                path_to_video = download_video(url)
+                path_to_video = download_media(url, MediaFormat.MP4)
 
                 # Subir el video al grupo de Telegram
                 video_file = FSInputFile(path_to_video)
                 await message.bot.send_video(
                     chat_id=message.chat.id,
                     video=video_file,
-                    caption="🎥 Aquí está tu video.",
+                    caption="🎥 Heres ur video.",
                 )
 
-                delete_file(path_to_video)
+                if status_message:
+                    await status_message.delete()
+
+                await delete_file(path_to_video)
 
             except Exception as e:
-                await message.reply("Error descargando video")
-                print(f"error: {e}")
+                await message.reply("Error downloading video.")
                 register_error(e)
 
-            await status_message.delete()
+                if status_message:
+                    await status_message.delete()
 
-    async def get_albion_price(self, message: Message):
-        """Obtener el precio de un objeto en Albion Online"""
+    async def get_song_name(self, message: Message):
+        """Buscar URL en mensaje y descargar video"""
+        url_pattern = r"https?://[^\s]+"
+        urls = re.findall(url_pattern, message.text)
 
-        # Extraer el comando y los argumentos del mensaje
-        item_data = await parse_item_info.parse_item_info(message)
+        if not urls:
+            message.reply("Error to find media")
+            return
 
-        status_message = await message.reply(
-            "🔄 Buscando el precio del objeto, esto puede tardar unos momentos..."
-        )
+        url = urls[0]
+        status_message = await message.reply("Wait a minute, Looking for media....")
+        print(url)
 
-        LINK = await build_link_price.build_link_price(item_data)
+        try:
+            # Download audio
+            path_to_media = download_media(url, MediaFormat.MP3)
 
-        # Obtener los datos y organizar por ciudad y calidad
-        data = fetch_data.fetch_data(LINK)
-        await status_message.delete()
+            song_name = await identify_song_from_file(path_to_media)
 
-        # Verificar si se obtuvo información
-        if data:
-            response = build_response.build_response(data)
+            await message.reply(song_name)
 
-            try:
-                if len(response) > 1500:
-                    new_prices_file = create_prices_file.save_prices_file(
-                        response, item_data
-                    )
+            if status_message:
+                await status_message.delete()
+            await delete_file(path_to_media)
 
-                    document = FSInputFile(new_prices_file)
-                    await message.reply_document(document)
-
-                    delete_file(new_prices_file)
-                else:
-                    await message.reply(response)
-
-            except Exception as e:
-                await message.reply("❌ Error al enviar la respuesta.")
-                print(f"Error al enviar la respuesta: {e}")
-                register_error(f"Error al enviar la respuesta: {e}")
-        else:
-            await message.reply("❌ No se pudo obtener la información del objeto.")
+        except Exception as e:
+            await message.reply("Error downloading video")
+            print(f"error: {e}")
+            register_error(e)
+            if status_message:
+                await status_message.delete()

@@ -1,11 +1,8 @@
 from aiogram import Bot, Dispatcher
-from os import getenv
-from dotenv import load_dotenv
+from config import BOT_TOKEN
 
 from handlers import router
 
-load_dotenv()
-BOT_TOKEN = getenv("BOT_TOKEN")
 
 # Crear el bot y el dispatcher
 bot = Bot(token=BOT_TOKEN)
