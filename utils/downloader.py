@@ -1,52 +1,20 @@
-import os
-import yt_dlp
+from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
 
 from utils.enums import MediaFormat
-
-
-def get_download_options(format_message: MediaFormat) -> dict:
-    if format_message == MediaFormat.MP3:
-        return {
-            "outtmpl": "./media/%(title)s.%(ext)s",
-            "format": "bestaudio[filesize<20M]/best",
-            "postprocessors": [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "wav",
-                    "preferredquality": "0",
-                }
-            ],
-            "noplaylist": True,
-        }
-    elif format_message == MediaFormat.MP4:
-        return {
-            "outtmpl": "./media/%(title)s.%(ext)s",
-            "format": "mp4/bestvideo[filesize<20M]+bestaudio/best",
-            "postprocessors": [
-                {
-                    "key": "FFmpegVideoConvertor",
-                    "preferedformat": "mp4",
-                }
-            ],
-        }
-    else:
-        raise ValueError(f"Formato no soportado: {format_message}")
+from handlers.downlaod_config_factory import DownloadConfigFactory
 
 
 def download_media(url: str, format_message: MediaFormat) -> str:
-    options = get_download_options(format_message)
+    try:
+        options = DownloadConfigFactory.get_config(format_message)
 
-    with yt_dlp.YoutubeDL(options) as ydl:
-        info = ydl.extract_info(url, download=True)
+        with YoutubeDL(options) as ydl:
+            info = ydl.extract_info(url, download=True)
 
         final_path = info["requested_downloads"][0]["filepath"]
 
-    if not os.path.exists(final_path):
-        return "File not found"
-
-    file_size = os.path.getsize(final_path) / (1024 * 1024)  # en MB
-    if file_size > 20:
-        os.remove(final_path)
-        return "Archivo demasiado grande, se ha eliminado."
+    except DownloadError as e:
+        raise RuntimeError(f"failed to download media {e}")
 
     return final_path

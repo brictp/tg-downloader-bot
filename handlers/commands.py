@@ -6,7 +6,13 @@ from utils import (
     download_media,
     register_error,
     delete_file,
-    identify_song_from_file,
+    get_params_from_message,
+)
+
+from utils.get_song_name import (
+    audio_converter,
+    request_to_shazam,
+    parse_shazam_response,
 )
 
 from utils.enums import MediaFormat
@@ -18,12 +24,10 @@ class BotHandlers:
 
     async def start_bot(self, message: Message):
         """Comando /start"""
-        print("hello i started")
         await message.reply("hellow")
 
     async def get_group_id(self, message: Message):
         """Obtener ID del grupo"""
-        print("hello i started idgrupo")
 
         if message.chat.type in ("group", "supergroup"):
             chat_id = message.chat.id
@@ -45,57 +49,41 @@ class BotHandlers:
             )
 
             try:
-                # Descargar el video
                 path_to_video = download_media(url, MediaFormat.MP4)
 
-                # Subir el video al grupo de Telegram
                 video_file = FSInputFile(path_to_video)
                 await message.bot.send_video(
                     chat_id=message.chat.id,
                     video=video_file,
-                    caption="🎥 Heres ur video.",
                 )
 
-                if status_message:
-                    await status_message.delete()
-
-                await delete_file(path_to_video)
-
             except Exception as e:
-                await message.reply("Error downloading video.")
+                await message.reply("Error Sending video")
                 register_error(e)
+
+            finally:
+                await delete_file(path_to_video)
 
                 if status_message:
                     await status_message.delete()
 
     async def get_song_name(self, message: Message):
-        """Buscar URL en mensaje y descargar video"""
-        url_pattern = r"https?://[^\s]+"
-        urls = re.findall(url_pattern, message.text)
-
-        if not urls:
-            message.reply("Error to find media")
-            return
-
-        url = urls[0]
-        status_message = await message.reply("Wait a minute, Looking for media....")
-        print(url)
-
+        """Search for the name of a song from a video or audio file"""
+        path_to_media = None
         try:
-            # Download audio
+            url, time_to_short = get_params_from_message(message.text)
+            status_message = await message.reply("Wait a minute, Looking for media....")
             path_to_media = download_media(url, MediaFormat.MP3)
 
-            song_name = await identify_song_from_file(path_to_media)
+            audio_converted = audio_converter(path_to_media, time_to_short)
+            res = request_to_shazam(audio_converted)
+            song_name = parse_shazam_response(res)
 
             await message.reply(song_name)
 
-            if status_message:
-                await status_message.delete()
-            await delete_file(path_to_media)
-
         except Exception as e:
             await message.reply("Error downloading video")
-            print(f"error: {e}")
             register_error(e)
-            if status_message:
-                await status_message.delete()
+
+        await status_message.delete()
+        await delete_file(path_to_media)
