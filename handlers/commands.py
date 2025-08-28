@@ -1,4 +1,3 @@
-import re
 from aiogram.types import Message, FSInputFile
 
 
@@ -39,33 +38,34 @@ class BotHandlers:
 
     async def search_and_download(self, message: Message):
         """Buscar URL en mensaje y descargar video"""
-        url_pattern = r"https?://[^\s]+"
-        urls = re.findall(url_pattern, message.text)
 
-        if urls:
-            url = urls[0]
-            status_message = await message.reply(
-                "🔄 Downloading, this may take a few moments..."
+        url, _time_to_short = get_params_from_message(message.text)
+
+        if url is None:
+            return
+
+        status_message = await message.reply(
+            "🔄 Downloading, this may take a few moments..."
+        )
+
+        try:
+            path_to_video = download_media(url, MediaFormat.MP4)
+
+            video_file = FSInputFile(path_to_video)
+            await message.bot.send_video(
+                chat_id=message.chat.id,
+                video=video_file,
             )
 
-            try:
-                path_to_video = download_media(url, MediaFormat.MP4)
+        except Exception as e:
+            await message.reply("Error Sending video")
+            register_error(e)
 
-                video_file = FSInputFile(path_to_video)
-                await message.bot.send_video(
-                    chat_id=message.chat.id,
-                    video=video_file,
-                )
+        finally:
+            if status_message:
+                await status_message.delete()
 
-            except Exception as e:
-                await message.reply("Error Sending video")
-                register_error(e)
-
-            finally:
-                await delete_file(path_to_video)
-
-                if status_message:
-                    await status_message.delete()
+            await delete_file(path_to_video)
 
     async def get_song_name(self, message: Message):
         """Search for the name of a song from a video or audio file"""

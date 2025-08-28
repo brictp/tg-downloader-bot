@@ -3,16 +3,13 @@ import re
 
 def get_params_from_message(text: str) -> tuple[str | None, int | None]:
     try:
-        if not text.strip():
-            raise ValueError("Must provide a message with a URL")
-
         # Extract valid url
         url_pattern = r"https?://[^\s]+"
         urls = re.findall(url_pattern, text)
         url = urls[0] if urls else None
 
         if url is None:
-            raise ValueError("No URL found in message")
+            return None, None
 
         # Find valid timestamp
         parts = text.strip().split()
