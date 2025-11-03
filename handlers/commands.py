@@ -8,6 +8,8 @@ from utils import (
     get_params_from_message,
 )
 
+from utils.user_allowed_handler import UserHandler
+
 from utils.get_song_name import (
     audio_converter,
     request_to_shazam,
@@ -20,6 +22,7 @@ from utils.enums import MediaFormat
 class BotHandlers:
     def __init__(self):
         """Inicializa la clase con la instancia del bot"""
+        self.user_handler = UserHandler()
 
     async def start_bot(self, message: Message):
         """Comando /start"""
@@ -38,6 +41,12 @@ class BotHandlers:
 
     async def search_and_download(self, message: Message):
         """Buscar URL en mensaje y descargar video"""
+
+        if not self.user_handler.is_user_allowed(message.from_user.id):
+            await message.reply(
+                "You cant use this function, please contact an admin of the bot"
+            )
+            return
 
         url, _time_to_short = get_params_from_message(message.text)
 
@@ -87,3 +96,50 @@ class BotHandlers:
 
         await status_message.delete()
         await delete_file(path_to_media)
+
+    async def add_user(self, message: Message):
+        await self.is_admin(message)
+
+        user_id = self.get_id_from_message(message)
+        await self.user_handler.add_user(int(user_id))
+        return
+
+    async def remove_user(self, message: Message):
+        await self.is_admin(message)
+
+        user_id = self.get_id_from_message(message)
+        print(user_id)
+        await self.user_handler.remove_user(int(user_id))
+        await message.reply("Usuario eliminado de administracion")
+        return
+
+    async def add_admin(self, message: Message):
+        await self.is_admin(message)
+        admin_user_id = 7646859427
+        if message.from_user.id != admin_user_id:
+            message.reply("No tienes permiso para eliminar administradores")
+
+        user_id = self.get_id_from_message(message)
+        await self.user_handler.add_admin(int(user_id))
+        await message.reply("Usuario agregado a administracion")
+        return
+
+    async def delete_admin(self, message: Message):
+        await self.is_admin(message)
+        admin_user_id = 7646859427
+        if message.from_user.id != admin_user_id:
+            message.reply("No tienes permiso para eliminar administradores")
+
+        user_id = self.get_id_from_message(message)
+        print(user_id)
+        await self.user_handler.remove_admin(int(user_id))
+        await message.reply("Usuario eliminado de administracion")
+        return
+
+    def get_id_from_message(self, message: Message):
+        return message.text.split(" ")[1]
+
+    async def is_admin(self, message: Message):
+        if not self.user_handler.is_admin(message.from_user.id):
+            await message.reply("Solo un admin puede autorizar usuarios.")
+            return

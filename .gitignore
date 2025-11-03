@@ -13,6 +13,7 @@ venv/
 .env.local
 config.json
 settings.json
+allowed_users.json
 
 # Archivos de logs
 logs/
