@@ -11,13 +11,19 @@ class UserHandler:
     # === BASE ===
     def _load_data(self):
         """Cargar archivo JSON o crear estructura por defecto"""
+        default_data = {"admins": [], "users": []}
+
         if not ALLOWED_FILE.exists():
-            data = {"admins": [], "users": []}
-            self._save_data(data)
-            return data
+            self._save_data(default_data)
+            return default_data
 
         with open(ALLOWED_FILE, "r") as f:
-            return json.load(f)
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                # Si está vacío o corrupto, reinicia con la estructura por defecto
+                self._save_data(default_data)
+                return default_data
 
     def _save_data(self, data=None):
         """Guardar datos en JSON"""

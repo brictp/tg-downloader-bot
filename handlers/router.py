@@ -44,6 +44,6 @@ async def remove_admins(message: Message):
     await bot_handler.remove_user(message)
 
 
-@router.message()
+@router.message(Command(commands=["d"]))
 async def detect_and_download(message: Message):
     await bot_handler.search_and_download(message)

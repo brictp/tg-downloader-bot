@@ -8,6 +8,9 @@ from utils import (
     get_params_from_message,
 )
 
+from utils.helper_handler import validate_user_id
+from config.settings import OWNER_ID
+
 from utils.user_allowed_handler import UserHandler
 
 from utils.get_song_name import (
@@ -42,11 +45,12 @@ class BotHandlers:
     async def search_and_download(self, message: Message):
         """Buscar URL en mensaje y descargar video"""
 
-        if not self.user_handler.is_user_allowed(message.from_user.id):
-            await message.reply(
-                "You cant use this function, please contact an admin of the bot"
-            )
-            return
+        if not await self.has_permissions(message):
+            if not self.user_handler.is_user_allowed(message.from_user.id):
+                await message.reply(
+                    "You cant use this function, please contact an admin of the bot"
+                )
+                return
 
         url, _time_to_short = get_params_from_message(message.text)
 
@@ -98,48 +102,66 @@ class BotHandlers:
         await delete_file(path_to_media)
 
     async def add_user(self, message: Message):
-        await self.is_admin(message)
+        if not await self.has_permissions(message):
+            return
 
         user_id = self.get_id_from_message(message)
-        await self.user_handler.add_user(int(user_id))
+        user_id = await validate_user_id(message, user_id)
+        if not user_id:
+            return
+
+        self.user_handler.add_user(user_id)
+        await message.reply("Usuario agregado")
         return
 
     async def remove_user(self, message: Message):
-        await self.is_admin(message)
+        if not await self.has_permissions(message):
+            return
 
         user_id = self.get_id_from_message(message)
-        print(user_id)
-        await self.user_handler.remove_user(int(user_id))
-        await message.reply("Usuario eliminado de administracion")
+        user_id = await validate_user_id(message, user_id)
+        if not user_id:
+            return
+
+        await self.user_handler.remove_user(user_id)
+        await message.reply("Usuario eliminado")
         return
 
     async def add_admin(self, message: Message):
-        await self.is_admin(message)
-        admin_user_id = 7646859427
-        if message.from_user.id != admin_user_id:
-            message.reply("No tienes permiso para eliminar administradores")
+        if not await self.has_permissions(message):
+            return
 
         user_id = self.get_id_from_message(message)
-        await self.user_handler.add_admin(int(user_id))
+        user_id = await validate_user_id(message, user_id)
+        if not user_id:
+            return
+        self.user_handler.add_admin(int(user_id))
         await message.reply("Usuario agregado a administracion")
         return
 
     async def delete_admin(self, message: Message):
-        await self.is_admin(message)
-        admin_user_id = 7646859427
-        if message.from_user.id != admin_user_id:
-            message.reply("No tienes permiso para eliminar administradores")
+        if not await self.has_permissions(message):
+            return
 
         user_id = self.get_id_from_message(message)
-        print(user_id)
+        user_id = await validate_user_id(message, user_id)
+        if not user_id:
+            return
+
         await self.user_handler.remove_admin(int(user_id))
         await message.reply("Usuario eliminado de administracion")
         return
 
     def get_id_from_message(self, message: Message):
-        return message.text.split(" ")[1]
-
-    async def is_admin(self, message: Message):
-        if not self.user_handler.is_admin(message.from_user.id):
-            await message.reply("Solo un admin puede autorizar usuarios.")
+        parts = message.text.split()
+        if len(parts) < 2:
+            message.reply("Debes especificar un ID de usuario")
             return
+        return parts[1]
+
+    async def has_permissions(self, message: Message):
+        is_admin = self.user_handler.is_admin(message.from_user.id)
+        if not (message.from_user.id == int(OWNER_ID) or is_admin):
+            await message.reply("No tienes permisos para realizar esta accion")
+            return False
+        return True
