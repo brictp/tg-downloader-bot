@@ -2,8 +2,8 @@ services:
 
   bot:
     build: .
-    image: ghcr.io/${brictp:-tg-downloader-bot}/bot-python:latest
-    container_name: tg-downloader-bot
+    image: ghcr.io/brictp/peaky-puller/bot-python:latest
+    container_name: peaky-puller
     restart: unless-stopped
     env_file:
       - .env
