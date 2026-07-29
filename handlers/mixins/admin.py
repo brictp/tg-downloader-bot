@@ -61,6 +61,22 @@ class AdminMixin:
         await message.reply("Usuario eliminado de administracion")
         logger.info("Admin removed by owner", target_user_id=user_id)
 
+    async def list_admins(self, message: Message):
+        admins = self.user_handler.list_admins()
+        if not admins:
+            await message.reply("No hay administradores registrados")
+            return
+        text = "**Administradores:**\n" + "\n".join(f"• `{uid}`" for uid in admins)
+        await message.reply(text)
+
+    async def list_users(self, message: Message):
+        users = self.user_handler.list_users()
+        if not users:
+            await message.reply("No hay usuarios permitidos")
+            return
+        text = "**Usuarios permitidos:**\n" + "\n".join(f"• `{uid}`" for uid in users)
+        await message.reply(text)
+
     async def get_id_from_message(self, message: Message):
         parts = message.text.split()
         if len(parts) < 2:

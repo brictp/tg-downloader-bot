@@ -11,8 +11,8 @@ class InfoMixin:
         text = (
             f"Bienvenido al bot descargador 🚀\n\n"
             f"Comandos:\n"
-            f"<b>/d</b> {'<'}url{'>'} — Descargar video (en grupos)\n"
-            f"<b>/getsong</b> {'<'}url{'>'} — Identificar canción\n"
+            f"<b>/d</b> &lt;url&gt; — Descargar video (en grupos)\n"
+            f"<b>/getsong</b> &lt;url&gt; — 🔴 No disponible\n"
             f"<b>/getid</b> — Obtener tu ID\n"
             f"<b>/owner</b> — Info del creador\n\n"
             f"En privado solo envía una URL y descargo automáticamente.\n"
@@ -71,6 +71,8 @@ class InfoMixin:
             "/allowadmin <id> — Promover admin\n"
             "/removeadmin <id> — Remover admin\n"
             "/idgrupo — Obtener ID del grupo\n"
+            "/getuseradmins — Listar administradores\n"
+            "/getbotusers — Listar usuarios permitidos\n"
             "/adminhelp — Mostrar esta ayuda"
         )
         await message.reply(text)

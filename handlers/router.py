@@ -36,7 +36,7 @@ async def group_id(message: Message):
 
 @router.message(Command(commands=["getsong"]))
 async def get_song(message: Message):
-    await bot_handler.get_song_name(message)
+    await message.reply("Comando /getsong no disponible por el momento")
 
 
 @router.message(Command(commands=["allowuser"]))
@@ -57,6 +57,16 @@ async def allow_user_add_admins(message: Message):
 @router.message(Command(commands=["removeadmin"]))
 async def remove_admins(message: Message):
     await bot_handler.remove_user(message)
+
+
+@router.message(Command(commands=["getuseradmins"]))
+async def get_admins(message: Message):
+    await bot_handler.list_admins(message)
+
+
+@router.message(Command(commands=["getbotusers"]))
+async def get_users(message: Message):
+    await bot_handler.list_users(message)
 
 
 @router.message(Command(commands=["d"]))

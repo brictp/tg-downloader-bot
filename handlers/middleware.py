@@ -29,7 +29,7 @@ class AuthContextMiddleware(BaseMiddleware):
 
             public_commands = {"/start", "/idgrupo", "/owner", "/getid", "/adminhelp"}
             allowed_commands = {"/d", "/getsong"}
-            admin_commands = {"/allowuser", "/removeuser"}
+            admin_commands = {"/allowuser", "/removeuser", "/getuseradmins", "/getbotusers"}
             owner_commands = {"/allowadmin", "/removeadmin"}
 
             if command in public_commands:
