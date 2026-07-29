@@ -1,10 +1,15 @@
 from aiogram.types import Message
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram import Router
 
 from handlers import BotHandlers
+from handlers.middleware import AuthContextMiddleware
+from handlers.throttling import ThrottlingMiddleware
+from utils import get_params_from_message
 
 router = Router()
+router.message.outer_middleware(AuthContextMiddleware())
+router.message.outer_middleware(ThrottlingMiddleware())
 
 bot_handler = BotHandlers()
 
@@ -12,6 +17,16 @@ bot_handler = BotHandlers()
 @router.message(Command(commands=["start"]))
 async def start_bot(message: Message):
     await bot_handler.start_bot(message)
+
+
+@router.message(Command(commands=["owner"]))
+async def owner_info(message: Message):
+    await bot_handler.get_owner(message)
+
+
+@router.message(Command(commands=["getid"]))
+async def user_id(message: Message):
+    await bot_handler.get_user_id(message)
 
 
 @router.message(Command(commands=["idgrupo"]))
@@ -47,3 +62,17 @@ async def remove_admins(message: Message):
 @router.message(Command(commands=["d"]))
 async def detect_and_download(message: Message):
     await bot_handler.search_and_download(message)
+
+
+@router.message(Command(commands=["adminhelp"]))
+async def admin_help(message: Message):
+    await bot_handler.admin_help(message)
+
+
+@router.message()
+async def auto_detect_url(message: Message):
+    if message.chat.type != "private":
+        return
+    url, _ = get_params_from_message(message.text or "")
+    if url:
+        await bot_handler.search_and_download(message)

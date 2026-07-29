@@ -1,0 +1,30 @@
+services:
+
+  bot:
+    build: .
+    image: ghcr.io/${brictp:-tg-downloader-bot}/bot-python:latest
+    container_name: tg-downloader-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: tg-dozzle
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "8888:8080"
+    environment:
+      - DOZZLE_LEVEL=info
+      - DOZZLE_FILTER=name=tg-downloader-bot
+      - DOZZLE_BASE=/
