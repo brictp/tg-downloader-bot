@@ -1,23 +1,35 @@
-import logging
 import os
 import sys
 
-# --- Configuración (solo se ejecuta una vez) ---
-os.makedirs("logs", exist_ok=True)
-logging.basicConfig(
-    filename="logs/errors.log",
-    level=logging.ERROR,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
-# ------------------------------------------------
+from loguru import logger
 
 
-def register_error(error_message):
-    """Registra errores en el archivo logs/errors.log.
-    El mensaje de error se registra en una SOLA línea
-    porque no incluimos el traceback."""
+def _get_patcher():
+    from utils.log_context import log_context_patcher
+    return log_context_patcher
 
-    # Esta línea siempre generará una entrada de log de una sola línea
-    # (asctime - ERROR - error_message), a menos que 'error_message'
-    # contenga saltos de línea.
-    logging.error(error_message)
+
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_FORMAT = os.getenv("LOG_FORMAT", "pretty")
+
+logger.remove()
+logger.configure(patcher=_get_patcher())
+
+if LOG_FORMAT == "json":
+    logger.add(
+        sys.stderr,
+        level=LOG_LEVEL,
+        serialize=True,
+    )
+else:
+    logger.add(
+        sys.stderr,
+        level=LOG_LEVEL,
+        format=(
+            "<green>{time:HH:mm:ss}</green> | "
+            "<level>{level:<7}</level> | "
+            "<cyan>{message}</cyan>"
+            "<dim>{extra}</dim>"
+        ),
+        colorize=True,
+    )

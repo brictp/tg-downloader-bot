@@ -48,7 +48,7 @@ jobs:
   # JOB 2: CONECTAR A TU PC VÍA TAILSCALE Y DESPLEGAR
   # ------------------------------------------------------------------
   deploy:
-    needs: build-and-push # Espera a que la imagen se suba con éxito
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: Conectar a la VPN de Tailscale
@@ -56,25 +56,33 @@ jobs:
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 
-      - name: Ejecutar despliegue vía SSH en tu PC local
+      - name: Crear directorio en el servidor
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }} # 100.100.38.4
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: mkdir -p /opt/apps/peaky-puller
+
+      - name: Copiar docker-compose.yml al servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml"
+          target: /opt/apps/peaky-puller
+          strip_components: 0
+
+      - name: Ejecutar despliegue vía SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. Ve a la carpeta donde tienes tu docker-compose.yml en tu PC
-            # REEMPLAZA ESTA RUTA por la ruta absoluta de tu carpeta local
-            cd /opt/apps/tg-dw-bot
-
-            # 2. Iniciar sesión en GHCR desde tu PC para descargar la imagen
+            cd /opt/apps/peaky-puller
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-            # 3. Descargar la imagen nueva
             docker compose pull
-
-            # 4. Levantar/Actualizar los contenedores en segundo plano
             docker compose up -d
-
-            # 5. Limpiar imágenes obsoletas para ahorrar espacio en disco
             docker image prune -f

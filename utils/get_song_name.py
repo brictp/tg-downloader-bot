@@ -2,7 +2,7 @@ import base64
 import requests
 from pydub import AudioSegment
 
-from utils import register_error
+from utils.logger import logger
 from config import SHAZAM_API_TOKEN
 
 
@@ -17,18 +17,16 @@ def audio_converter(audio_path: str, time_to_short: None | int) -> str:
             .set_sample_width(2)
         )
 
-        # Export data to RAW PCM
         raw_bytes = shorted_audio.raw_data
         size_kb = len(raw_bytes) / 1024
         if size_kb > 500:
             return "Error audio too large to shazam"
 
-        # Econde in Base64
         audio_b64 = base64.b64encode(raw_bytes).decode("utf-8")
         return audio_b64
 
     except Exception as e:
-        register_error(f"Error to convert Audio {e}")
+        logger.exception("Error converting audio")
         raise ValueError("Error to convert Audio")
 
 
@@ -67,9 +65,12 @@ def parse_shazam_response(res: dict) -> str:
         artist = track.get("subtitle")
 
         if not title or not artist:
+            logger.warning("Incomplete song metadata", response=res)
             return "Error incomplete song metadata"
 
-        return f"{title} - {artist}"
+        song_name = f"{title} - {artist}"
+        logger.info("Song identified", song=song_name)
+        return song_name
 
     except Exception as e:
-        register_error(f"Error parsing shazam response {e}")
+        logger.exception("Error parsing shazam response")

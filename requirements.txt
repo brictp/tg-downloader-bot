@@ -1,5 +1,6 @@
 aiogram==3.19.0
-yt-dlp==2025.3.27
+yt-dlp
 pydub==0.25.1
 requests==2.32.3
 python-dotenv==1.1.0
+loguru>=0.7.2

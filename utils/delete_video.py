@@ -1,13 +1,15 @@
 import os
 import asyncio
 
+from utils.logger import logger
+
 
 async def delete_file(path):
     """Delete video after 3 minutes"""
-    await asyncio.sleep(20)  # Esperar 20 segundos
+    await asyncio.sleep(20)
 
     if os.path.exists(path):
         os.remove(path)
-        print(f"file deleted in {path}")
+        logger.info("File deleted", path=path)
     else:
-        print(f"⚠️ No se encontró el archivo: {path}")
+        logger.warning("File not found for deletion", path=path)

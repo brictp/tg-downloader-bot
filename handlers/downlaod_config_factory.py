@@ -16,7 +16,6 @@ class DownloadConfigFactory:
             return {
                 **base_config,
                 "format": "bestaudio/best",
-                "max-filesize": "6M",
                 "postprocessors": [
                     {
                         "key": "FFmpegExtractAudio",
@@ -31,7 +30,6 @@ class DownloadConfigFactory:
                 **base_config,
                 "format": "bestvideo+bestaudio/best",
                 "merge_output_format": "mp4",
-                "max-filesize": "15M",
                 "postprocessors": [
                     {
                         "key": "FFmpegVideoConvertor",
