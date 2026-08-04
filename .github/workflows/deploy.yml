@@ -51,6 +51,10 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      # ⚠️ PASO AGREGADO: Descarga los archivos del repo en la máquina virtual de deploy
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
       - name: Conectar a la VPN de Tailscale
         uses: tailscale/github-action@v2
         with:
