@@ -7,4 +7,5 @@ from handlers.mixins.admin import AdminMixin
 
 class BotHandlers(InfoMixin, DownloadMixin, AdminMixin):
     def __init__(self):
+        super().__init__()
         self.user_handler = UserHandler()

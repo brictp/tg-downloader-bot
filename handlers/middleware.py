@@ -30,7 +30,7 @@ class AuthContextMiddleware(BaseMiddleware):
             public_commands = {"/start", "/idgrupo", "/owner", "/getid", "/adminhelp"}
             allowed_commands = {"/d", "/getsong"}
             admin_commands = {"/allowuser", "/removeuser", "/getuseradmins", "/getbotusers"}
-            owner_commands = {"/allowadmin", "/removeadmin"}
+            owner_commands = {"/allowadmin", "/removeadmin", "/clearcache"}
 
             if command in public_commands:
                 return await handler(event, data)

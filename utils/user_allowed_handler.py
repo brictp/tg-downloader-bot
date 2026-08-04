@@ -1,7 +1,8 @@
 import json
+import os
 from pathlib import Path
 
-ALLOWED_FILE = Path("allowed_users.json")
+ALLOWED_FILE = Path(os.getenv("ALLOWED_FILE", "data/allowed_users.json"))
 
 
 class UserHandler:
@@ -29,6 +30,7 @@ class UserHandler:
         """Guardar datos en JSON"""
         if data is None:
             data = self.data
+        ALLOWED_FILE.parent.mkdir(parents=True, exist_ok=True)
         with open(ALLOWED_FILE, "w") as f:
             json.dump(data, f, indent=4)
 

@@ -12,6 +12,7 @@ A Python Telegram bot that downloads videos and audio from URLs, with song ident
 - 🎵 **Download audio** and convert to MP3/WAV
 - 🎶 **Song identification** using Shazam API
 - 🤖 **Telegram integration** with inline commands
+- 🗃️ **Video cache via archive channel**: videos are uploaded to a private channel and re-sent from there, so repeat requests are instant and the archive is kept for recovery
 - 📁 **Automatic file cleanup** after sending
 - 🐳 **Docker support** for easy deployment
 
@@ -44,6 +45,7 @@ A Python Telegram bot that downloads videos and audio from URLs, with song ident
    ```env
    BOT_TOKEN=your_telegram_bot_token
    SHAZAM_API_TOKEN=your_shazam_api_token
+   CHANNEL_ID=your_archive_channel_id
    ```
 
 4. **Run the bot:**
@@ -89,9 +91,12 @@ docker run -d --env-file .env tg-downloader-bot
 │   └── settings.py      # Environment configuration
 ├── handlers/
 │   ├── commands.py      # Bot command handlers
-│   └── router.py        # Message routing
+│   ├── router.py        # Message routing
+│   └── mixins/          # Info, download & admin logic
 └── utils/
     ├── downloader.py    # Media download logic
+    ├── cache.py         # Video cache index (channel-based)
+    ├── url_utils.py     # URL canonicalization for cache keys
     ├── get_song_name.py # Shazam integration
     ├── enums.py         # Media format enums
     └── logger.py        # Error logging

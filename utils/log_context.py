@@ -4,6 +4,8 @@ from typing import Optional
 
 from aiogram.types import Message
 
+from utils.url_utils import sanitize_url
+
 
 @dataclass
 class RequestContext:
@@ -24,10 +26,12 @@ class LogContext:
 
     @staticmethod
     def set_from_message(message: Message):
+        first_token = message.text.split()[0] if message.text else None
+        command = sanitize_url(first_token) if first_token else None
         ctx = RequestContext(
             user_id=message.from_user.id if message.from_user else None,
             username=message.from_user.username if message.from_user else None,
-            command=message.text.split()[0] if message.text else None,
+            command=command,
             chat_id=message.chat.id,
             chat_type=message.chat.type,
         )

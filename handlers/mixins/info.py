@@ -73,6 +73,7 @@ class InfoMixin:
             "/idgrupo — Obtener ID del grupo\n"
             "/getuseradmins — Listar administradores\n"
             "/getbotusers — Listar usuarios permitidos\n"
+            "/clearcache — Limpiar caché de videos\n"
             "/adminhelp — Mostrar esta ayuda"
         )
         await message.reply(text)

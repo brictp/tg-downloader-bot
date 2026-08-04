@@ -1,6 +1,9 @@
 from aiogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeChat
+from aiogram.exceptions import TelegramBadRequest
 
 from config.settings import OWNER_ID
+
+from utils import logger
 
 
 async def set_bot_commands(bot):
@@ -28,7 +31,14 @@ async def set_bot_commands(bot):
         BotCommand(command="removeuser", description="[Admin] Remover usuario"),
         BotCommand(command="allowadmin", description="[Owner] Promover admin"),
         BotCommand(command="removeadmin", description="[Owner] Remover admin"),
+        BotCommand(command="clearcache", description="[Owner] Limpiar caché de videos"),
         BotCommand(command="getuseradmins", description="[Admin] Listar admins"),
         BotCommand(command="getbotusers", description="[Admin] Listar usuarios"),
     ]
-    await bot.set_my_commands(owner, scope=BotCommandScopeChat(chat_id=int(OWNER_ID)))
+    try:
+        await bot.set_my_commands(owner, scope=BotCommandScopeChat(chat_id=int(OWNER_ID)))
+    except TelegramBadRequest as e:
+        logger.warning(
+            "No se pudo setear comandos del owner: chat no disponible aun",
+            error=str(e),
+        )

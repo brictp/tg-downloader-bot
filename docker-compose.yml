@@ -10,6 +10,9 @@ services:
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - LOG_FORMAT=${LOG_FORMAT:-json}
+      - DEV_MODE=false
+    volumes:
+      - ./data:/usr/src/app/data
     logging:
       driver: "json-file"
       options:

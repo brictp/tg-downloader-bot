@@ -4,6 +4,7 @@ from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 
 from utils.enums import MediaFormat
+from utils.url_utils import sanitize_url
 
 
 def download_media(url: str, format_message: MediaFormat) -> str:
@@ -11,11 +12,13 @@ def download_media(url: str, format_message: MediaFormat) -> str:
     from utils.log_context import LogContext
     from handlers.downlaod_config_factory import DownloadConfigFactory
 
+    safe_url = sanitize_url(url)
+
     try:
         options = DownloadConfigFactory.get_config(format_message)
         fmt = format_message.value
 
-        logger.info("Download started", media_url=url, format=fmt)
+        logger.info("Download started", media_url=safe_url, format=fmt)
 
         with YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
@@ -24,11 +27,11 @@ def download_media(url: str, format_message: MediaFormat) -> str:
         duration = info.get("duration")
         file_size = os.path.getsize(final_path)
 
-        LogContext.set_media_metadata(url, duration, fmt)
-        logger.info("Download complete", media_url=url, duration=duration, format=fmt, file_size=file_size)
+        LogContext.set_media_metadata(safe_url, duration, fmt)
+        logger.info("Download complete", media_url=safe_url, duration=duration, format=fmt, file_size=file_size)
 
     except DownloadError as e:
-        logger.exception("Download failed", media_url=url, format=format_message.value)
+        logger.exception("Download failed", media_url=safe_url, format=format_message.value)
         raise RuntimeError(f"failed to download media {e}")
 
     return final_path

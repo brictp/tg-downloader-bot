@@ -1,5 +1,7 @@
-from utils.enums import MediaFormat
 from typing import Dict
+
+from utils.enums import MediaFormat
+from utils.logger import YtDlpLogBridge
 
 
 class DownloadConfigFactory:
@@ -10,6 +12,8 @@ class DownloadConfigFactory:
         base_config = {
             "outtmpl": DownloadConfigFactory.MEDIA_DIR,
             "noplaylist": True,
+            "noprogress": True,
+            "logger": YtDlpLogBridge(),
         }
 
         if format_type == MediaFormat.MP3:

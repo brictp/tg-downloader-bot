@@ -77,6 +77,11 @@ class AdminMixin:
         text = "**Usuarios permitidos:**\n" + "\n".join(f"• `{uid}`" for uid in users)
         await message.reply(text)
 
+    async def clear_cache(self, message: Message):
+        self.cache.clear()
+        await message.reply("Caché limpiada")
+        logger.info("Cache cleared", user_id=message.from_user.id)
+
     async def get_id_from_message(self, message: Message):
         parts = message.text.split()
         if len(parts) < 2:

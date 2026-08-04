@@ -59,6 +59,11 @@ async def remove_admins(message: Message):
     await bot_handler.remove_user(message)
 
 
+@router.message(Command(commands=["clearcache"]))
+async def clear_cache(message: Message):
+    await bot_handler.clear_cache(message)
+
+
 @router.message(Command(commands=["getuseradmins"]))
 async def get_admins(message: Message):
     await bot_handler.list_admins(message)
