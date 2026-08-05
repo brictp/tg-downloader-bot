@@ -1,9 +1,25 @@
+import logging
 import os
 import sys
 
 from loguru import logger
 
 from config.settings import DEV_MODE, LOG_FILE
+
+
+class InterceptHandler(logging.Handler):
+    def emit(self, record: logging.LogRecord):
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+
+        frame, depth = logging.currentframe(), 2
+        while frame and frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
+
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
 def _get_patcher():
@@ -13,6 +29,8 @@ def _get_patcher():
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 LOG_FORMAT = os.getenv("LOG_FORMAT", "pretty")
+
+logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 
 logger.remove()
 logger.configure(patcher=_get_patcher())

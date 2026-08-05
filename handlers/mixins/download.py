@@ -1,6 +1,7 @@
 import asyncio
 
 from aiogram.types import Message, FSInputFile, ReactionTypeEmoji
+from aiogram.exceptions import TelegramBadRequest
 
 from config.settings import CHANNEL_ID
 
@@ -51,6 +52,12 @@ class DownloadMixin:
         )
         logger.info("Video sent from cache", cache_key=cache_key)
 
+    async def _safe_react(self, message: Message):
+        try:
+            await message.react([ReactionTypeEmoji(emoji="💯")])
+        except TelegramBadRequest:
+            logger.warning("No se pudo reaccionar, el mensaje probablemente fue eliminado")
+
     async def search_and_download(self, message: Message):
         url, _time_to_short = get_params_from_message(message.text)
 
@@ -86,7 +93,7 @@ class DownloadMixin:
         except Exception as e:
             logger.exception("Failed to extract media info")
 
-        await message.react([ReactionTypeEmoji(emoji="💯")])
+        await self._safe_react(message)
 
         if cache_key:
             lock = self._get_lock(cache_key)
@@ -161,7 +168,7 @@ class DownloadMixin:
                 await message.reply(error_msg)
                 return
 
-            await message.react([ReactionTypeEmoji(emoji="💯")])
+            await self._safe_react(message)
             path_to_media = download_media(url, MediaFormat.MP3)
             logger.info("Audio downloaded for Shazam")
 
